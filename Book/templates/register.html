@@ -1,0 +1,266 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Регистрация</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'Book/css/register.css' %}"
+    >
+
+</head>
+
+<body>
+
+<div class="register-page">
+
+    <div class="register-card">
+
+        <div class="logo">
+            <span>Qarz</span>Book
+        </div>
+
+        <h1>Создать аккаунт</h1>
+
+        <p class="subtitle">
+            Заполните данные для регистрации
+        </p>
+
+
+        <form method="POST" id="registerForm">
+
+            {% csrf_token %}
+
+
+            <!-- USERNAME -->
+
+            <div class="form-group">
+
+                <label for="{{ form.username.id_for_label }}">
+                    Имя пользователя
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">👤</span>
+
+                    {{ form.username }}
+
+                </div>
+
+
+                {% if form.username.errors %}
+
+                    <div class="django-error">
+
+                        {{ form.username.errors.0 }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-group">
+
+                <label for="{{ form.email.id_for_label }}">
+                    Email
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">✉️</span>
+
+                    {{ form.email }}
+
+                </div>
+
+
+                {% if form.email.errors %}
+
+                    <div class="django-error">
+
+                        {{ form.email.errors.0 }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="{{ form.password1.id_for_label }}">
+                    Пароль
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">🔒</span>
+
+                    {{ form.password1 }}
+
+                    <button
+                        type="button"
+                        class="password-button"
+                        data-target="{{ form.password1.id_for_label }}"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+
+                {% if form.password1.errors %}
+
+                    <div class="django-error">
+
+                        {{ form.password1.errors.0 }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="password-strength">
+
+                    <div class="strength-background">
+
+                        <div
+                            class="strength-bar"
+                            id="strengthBar"
+                        ></div>
+
+                    </div>
+
+                    <span id="strengthText">
+                        Введите пароль
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- PASSWORD CONFIRM -->
+
+            <div class="form-group">
+
+                <label for="{{ form.password2.id_for_label }}">
+                    Повторите пароль
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">🔐</span>
+
+                    {{ form.password2 }}
+
+                    <button
+                        type="button"
+                        class="password-button"
+                        data-target="{{ form.password2.id_for_label }}"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+
+                {% if form.password2.errors %}
+
+                    <div class="django-error">
+
+                        {{ form.password2.errors.0 }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- TERMS -->
+
+            <label class="terms">
+
+                <input
+                    type="checkbox"
+                    id="terms"
+                    required
+                >
+
+                <span>
+                    Я согласен с условиями использования
+                </span>
+
+            </label>
+
+
+            <!-- BUTTON -->
+
+            <button
+                type="submit"
+                class="register-button"
+                id="registerButton"
+            >
+
+                <span>
+                    Создать аккаунт
+                </span>
+
+                <span class="arrow">
+                    →
+                </span>
+
+            </button>
+
+        </form>
+
+
+        <div class="divider">
+
+            <span>или</span>
+
+        </div>
+
+
+        <div class="login-link">
+
+            Уже есть аккаунт?
+
+            <a href="{% url 'login' %}">
+                Войти
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="{% static 'Book/js/register.js' %}"></script>
+
+</body>
+
+</html>
+

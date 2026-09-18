@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QarzBook</title>
+
+    <link rel="stylesheet" href="{% static 'Book/css/main.css' %}">
+
+</head>
+
+<body>
+    <header>
+        <div class="logo">Qarz<span>Book</span></div>
+
+        <div class="navbar-right">
+            <div class="header-date" id="currentDate"></div>
+
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-button">
+                        Выйти
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </header>
+
+{% block  content %}
+
+{% endblock %}
+    <script src='{% static "Book/js/main.js" %}' ></script>
+</body>
+
+</html>

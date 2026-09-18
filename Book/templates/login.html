@@ -1,0 +1,171 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Вход</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'Book/css/register.css' %}"
+    >
+</head>
+
+<body>
+
+<div class="register-page">
+
+    <div class="register-card">
+
+        <div class="logo">
+            <span>Qarz</span>Book
+        </div>
+
+        <h1>С возвращением 👋</h1>
+
+        <p class="subtitle">
+            Войдите в свой аккаунт
+        </p>
+
+
+        {% if error %}
+            <div class="django-error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="username">
+                    Имя пользователя
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">👤</span>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Введите имя пользователя"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Пароль
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="icon">🔒</span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Введите пароль"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-button"
+                        onclick="togglePassword()"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="register-button"
+            >
+
+                <span>Войти</span>
+
+                <span class="arrow">→</span>
+
+            </button>
+
+        </form>
+
+
+        <div class="divider">
+            <span>или</span>
+        </div>
+
+
+        <div class="login-link">
+
+            Нет аккаунта?
+
+            <a href="{% url 'register' %}">
+                Зарегистрироваться
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function togglePassword() {
+
+    const password =
+        document.getElementById("password");
+
+    const button =
+        document.querySelector(".password-button");
+
+
+    if (password.type === "password") {
+
+        password.type = "text";
+
+        button.textContent = "🙈";
+
+    } else {
+
+        password.type = "password";
+
+        button.textContent = "👁";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
+

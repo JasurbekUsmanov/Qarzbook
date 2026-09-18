@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+ {% if user.is_authenticated %}
+
+    {% csrf_token %}
+
+    <main class="container">
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-title">Всего клиентов</div>
+                <div class="stat-value blue">{{ total_customers }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Общий долг</div>
+                <div class="stat-value red" id="totalDebt">{{ total_debt_display }} сум</div>
+            </div>
+        </section>
+
+        <section class="toolbar">
+            <div class="search-box">
+                <input id="searchInput" type="text" placeholder="Поиск клиента...">
+                <button class="mic-button" onclick="voiceSearch()" title="Голосовой поиск">🎤</button>
+                <div class="voice-alternatives" id="voiceAlternatives"></div>
+            </div>
+            <button class="add-client-button" onclick="openAddClientModal()">+ Добавить клиента</button>
+        </section>
+
+        <section class="customers-grid" id="customersGrid">
+
+            {% for i in customers %}
+
+                <div class="customer-card">
+
+                    <button
+                        type="button"
+                        class="delete-btn"
+                        title="Удалить клиента"
+                        onclick="deleteCustomer('{{ i.id }}', '{{ i.name|escapejs }}')">
+                        ✕
+                    </button>
+
+                    <div class="customer-top">
+
+                        <div class="avatar">
+                            {{ i.name|first|upper }}
+                        </div>
+
+                        <div>
+                            <div class="customer-name">
+                                {{ i.name }}
+                            </div>
+
+                            <div class="phone">
+                                {{ i.phone }}
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="debt-box">
+
+                        <div class="debt-label">
+                            Текущий долг
+                        </div>
+
+                        <div class="debt-value">
+                            {{ i.total_debt_display }} сум
+                        </div>
+
+                    </div>
+
+
+                    {% for debt in i.debts.all|slice:":5" %}
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                {% if debt.type == "payment" %}
+                                    💰 Оплата:
+                                {% else %}
+                                    📅 Взял:
+                                {% endif %}
+                            </span>
+
+                            <span class="info-value">
+                                {{ debt.amount }} сум
+                                &middot;
+                                {{ debt.created_at|date:"d.m.Y H:i" }}
+                                {% if debt.description %}
+                                    ({{ debt.description }})
+                                {% endif %}
+                            </span>
+
+                        </div>
+
+                    {% empty %}
+
+                        <div class="info-row">
+                            <span class="info-value">Операций пока нет</span>
+                        </div>
+
+                    {% endfor %}
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="button add-debt"
+                            onclick="openAddDebtModal('{{ i.id }}', '{{ i.name|escapejs }}')">
+                            ➕ Добавить к долгу
+                        </button>
+
+                        <button
+                            type="button"
+                            class="button pay-debt"
+                            data-debt="{{ i.total_debt }}"
+                            onclick="openPaymentModal('{{ i.id }}', '{{ i.name|escapejs }}', '{{ i.total_debt }}')">
+                            💰 Погасить
+                        </button>
+
+                        <button
+                            type="button"
+                            class="button details"
+                            onclick="showDetails('{{ i.id }}', '{{ i.name|escapejs }}')">
+                            Подробнее
+                        </button>
+
+                    </div>
+
+                    <template id="history-{{ i.id }}">
+                        {% for debt in i.debts.all %}
+                            <div class="info-row">
+                                <span class="info-label">
+                                    {% if debt.type == "payment" %}
+                                        💰 Оплата:
+                                    {% else %}
+                                        📅 Взял:
+                                    {% endif %}
+                                </span>
+                                <span class="info-value">
+                                    {{ debt.amount }} сум
+                                    &middot;
+                                    {{ debt.created_at|date:"d.m.Y H:i" }}
+                                    {% if debt.description %}
+                                        ({{ debt.description }})
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% empty %}
+                            <div class="info-row">
+                                <span class="info-value">Операций пока нет</span>
+                            </div>
+                        {% endfor %}
+                    </template>
+
+                </div>
+
+            {% empty %}
+
+                <div class="empty">
+                    Клиентов пока нет
+                </div>
+
+            {% endfor %}
+
+        </section>
+    </main>
+
+    <!-- Модальное окно: Добавить к долгу -->
+    <div class="modal" id="addDebtModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Добавить к долгу</h2>
+                <button class="close" onclick="closeModals()">×</button>
+            </div>
+            <div class="selected-customer" id="addDebtCustomer"></div>
+            <div class="form-group">
+                <label>Сумма</label>
+                <input type="hidden" id="debtCustomerId" name="customer_id">
+                <input id="addDebtAmount" name='amount' type="text" inputmode="numeric" placeholder="50 000">
+            </div>
+            <div class="form-group">
+                <label>Что взял?</label>
+                <div class="desc-input-wrap">
+                    <input name='description' id="addDebtDescription" type="text" placeholder="Например: продукты">
+                    <button type="button" class="desc-mic-button" onclick="voiceInputDescription('addDebtDescription')" title="Голосовой ввод">🎤</button>
+                </div>
+            </div>
+            <button class="save-button" onclick="addDebt()">Добавить к долгу</button>
+        </div>
+    </div>
+
+
+
+    <!-- Модальное окно: Новый клиент -->
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+        <form method="POST" action="{% url 'add_customer' %}">
+        {% csrf_token %}
+            <div class="modal-header">
+                <h2>Новый клиент</h2>
+                <button class="close" onclick="closeModals()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Имя клиента</label>
+                <input id="clientName" name='name' type="text" placeholder="Например: Aziz">
+            </div>
+            <div class="form-group">
+                <label>Телефон</label>
+                <input id="clientPhone" name="phone" type="text" placeholder="+998 90 123 45 67">
+            </div>
+            <div class="form-group">
+                <label>Первый долг</label>
+                <input id="clientDebt" name='amount' type="text" inputmode="numeric" placeholder="150 000" value="">
+            </div>
+            <div class="form-group">
+                <label>Что взял?</label>
+                <div class="desc-input-wrap">
+                    <input id="clientDescription" name='description' type="text" placeholder="Хлеб, молоко...">
+                    <button type="button" class="desc-mic-button" onclick="voiceInputDescription('clientDescription')" title="Голосовой ввод">🎤</button>
+                </div>
+            </div>
+            <button class="save-button" type="submit" >Создать клиента</button>
+            </form>
+        </div>
+    </div>
+
+      <!-- Модальное окно: Погашение -->
+   <div class="modal" id="paymentModal">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2>💰 Погашение долга</h2>
+
+            <button
+                type="button"
+                class="close"
+                onclick="closeModals()">
+                ×
+            </button>
+        </div>
+
+        <div
+            class="selected-customer"
+            id="paymentCustomer">
+        </div>
+
+        <div class="form-group">
+            <label>Сумма оплаты</label>
+
+            <input
+                type="hidden"
+                id="paymentCustomerId"
+                name="customer_id"
+            >
+
+            <input
+                id="paymentAmount"
+                name="amount"
+                type="text"
+                inputmode="numeric"
+                placeholder="50 000"
+            >
+        </div>
+
+        <button
+            type="button"
+            class="save-button"
+            onclick="makePayment()">
+            Принять оплату
+        </button>
+
+    </div>
+</div>
+
+    <div class="mini-keypad" id="miniKeypad"></div>
+
+    <!-- Модальное окно: Подробнее -->
+    <div class="modal" id="detailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailsCustomerName">Подробнее</h2>
+                <button class="close" onclick="closeModals()">×</button>
+            </div>
+            <div id="detailsList"></div>
+        </div>
+    </div>
+
+{% else%}
+
+<div class="empty"> Пожалуйста авторизируйтесь</div>
+<a type='submit' class="btn" href='{% url "register" %}'>Login</a>
+{% endif%}
+
+{% endblock %}
